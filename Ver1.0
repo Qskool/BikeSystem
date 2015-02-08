@@ -1,0 +1,140 @@
+/*Q-Bike OS v1.0
+William Kew 2014
+This code is in the public domain.
+Please send any modified examples to will.d.kew@gmail.com (I like to see how my code is manipulated)
+*/
+
+#include <SD.h> // Include SD shield library
+
+#include <LiquidCrystal.h>   // Include LCD Library
+LiquidCrystal lcd(12, 11, 45, 44, 43, 42);  // Assign Pins for screen
+
+#define echoPin 53
+#define trigPin 52
+#define LEDPin 34
+
+int maximumRange = 200;
+int minimumRange = 0;
+long duration, distance; // Duration used to calculate distance
+
+int switchstate1 = 0;   // Control Cluster button defaults
+int switchstate2 = 0;
+int switchstate3 = 0;
+
+void setup(){          // Declare Pin out to Leds/Buttons
+  pinMode(4, OUTPUT);
+  pinMode(5, OUTPUT);
+  pinMode(3, INPUT);
+  pinMode(2, INPUT);
+  pinMode(6, INPUT);
+  lcd.begin(16, 2);    // Intitialize LCD screen 
+  lcd.setCursor(1, 0);
+  lcd.print("Q-BIKE OS v1.0"); // Splash Screen
+ delay(1500);
+lcd.clear();
+  Serial.begin(9600);
+  Serial.print("Initialize SONAR");
+  lcd.setCursor(1, 0);
+  lcd.print("Initialize SONAR");
+  delay(1000);
+  lcd.clear();
+  lcd.setCursor(1, 0);
+  lcd.print("Get Light Info");
+  delay(1000);
+  lcd.clear();
+  
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(LEDPin, OUTPUT);
+}
+
+void loop() {                      // start system loop
+  
+ digitalWrite(trigPin, LOW); 
+ delayMicroseconds(2); 
+
+ digitalWrite(trigPin, HIGH);
+ delayMicroseconds(10); 
+ 
+ digitalWrite(trigPin, LOW);
+ duration = pulseIn(echoPin, HIGH);
+ 
+ //Calculate the distance (in cm) based on the speed of sound.
+ distance = duration/58.2;
+ 
+ if (distance >= maximumRange || distance <= minimumRange){
+ /* Send a negative number to computer and Turn LED OFF 
+ to indicate "out of range" */
+ Serial.println("-1");
+ digitalWrite(LEDPin, LOW); 
+ }
+ else {
+ /* Send the distance to the computer using Serial protocol, and
+ turn LED OFF to indicate successful reading. */
+ Serial.println(distance);
+ digitalWrite(LEDPin, HIGH);
+lcd.setCursor(1, 1);
+lcd.print("Enemy Detected");
+delay(1000);
+
+ }
+ 
+ //Delay 50ms before next reading.
+ delay(50);
+
+  switchstate1 = digitalRead(2);
+  switchstate2 = digitalRead(3);
+  switchstate3 = digitalRead(6);
+  
+  if (switchstate1 == HIGH) {
+    digitalWrite(4, HIGH);
+    delay(500);
+    digitalWrite(4, LOW);
+    delay(10);
+  }
+    if (switchstate2 == HIGH) {
+      digitalWrite(5, HIGH);
+      delay(500);
+      digitalWrite(5, LOW);
+      delay(10);
+    }
+    if (switchstate3 == HIGH) {
+      digitalWrite(4, HIGH);
+      digitalWrite(5, HIGH);
+      delay(500);
+      digitalWrite(4, LOW);
+      digitalWrite(5, LOW);
+      delay(500);
+    }
+    if (switchstate1 == HIGH) {
+      lcd.setCursor(0, 1);
+      lcd.print("<<< Left Turn");
+      delay(750);
+      lcd.setCursor(0, 1);
+      lcd.clear();
+      delay(100);
+    }
+    if (switchstate2 == HIGH) {
+      lcd.setCursor(2, 1);
+      lcd.print("Right Turn >>>");
+      delay(750);
+      lcd.setCursor(2, 1);
+      lcd.clear();
+      delay(100);
+      
+    }
+    if (switchstate3 == HIGH) {
+      lcd.setCursor(0, 1);
+      lcd.print("<<< Hazards >>>");
+      delay(750);
+      lcd.setCursor(0, 1);
+      lcd.clear();
+      delay(100);
+      }
+      if (switchstate1 == LOW);
+      if (switchstate2 == LOW);
+      if (switchstate3 == LOW);
+      lcd.setCursor(0, 1);
+      lcd.clear();
+}
+
